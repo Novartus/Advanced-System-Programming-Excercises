@@ -12,23 +12,23 @@
 
 #include <unistd.h>
 
-char ** globalargv;
+char ** globalArgV;
 int target = -1;
-char * startpath = ".";
+char * startPath = ".";
 int count = 0;
 
-int customNftw(const char * fname,
-  const struct stat * statptr, int fileflags, struct FTW * pfwt) {
-  if (fileflags == FTW_SL) { // if it is a symbolic link
-    char * fullpath = realpath(fname, NULL); // character pointer to the full path of the file from the symbolic link
-    char * dname = dirname(fullpath); // character pointer to the directory name to check if real path matches any entry in the ancestry.
+int customNftw(const char * fName,
+  const struct stat * statPtr, int fileFlags, struct FTW * pfwt) {
+  if (fileFlags == FTW_SL) { // if it is a symbolic link
+    char * fullpath = realpath(fName, NULL); // character pointer to the full path of the file from the symbolic link
+    char * dName = dirname(fullpath); // character pointer to the directory name to check if real path matches any entry in the ancestry.
     
-    if (strlen(dname) == strlen(startpath)) {
+    if (strlen(dName) == strlen(startPath)) {
       int flag = 0;
-      for (int i = 0; i < strlen(dname); i++) {
-        if (dname[i] != startpath[i]) {
+      for (int i = 0; i < strlen(dName); i++) {
+        if (dName[i] != startPath[i]) {
           flag = 1;
-          printf("%s\n", fname); // match is found, print the whole pathname of link
+          printf("%s\n", fName); // match is found, print the whole pathname of link
           count++;
           break;
         }
@@ -38,8 +38,8 @@ int customNftw(const char * fname,
   return 0;
 }
 
-int main(int argc, char * argv[]) {
-  globalargv = argv;
+int main(int argc, char * argV[]) {
+  globalArgV = argV;
   char * currentWorkingDir = getcwd(NULL, 0);
   for (int i = 0; i < argc; i++) {
     if (argc == 2) {
@@ -49,13 +49,13 @@ int main(int argc, char * argv[]) {
 
   if (target <= -1) {
     target = argc;
-    startpath = currentWorkingDir;
+    startPath = currentWorkingDir;
   } else {
-    startpath = argv[target];
+    startPath = argV[target];
   }
   int fd_limit = 99;
   int flags = FTW_PHYS; // FTW_PHYS to perform a physical walk 
   int ret;
-  ret = nftw(startpath, customNftw, fd_limit, flags);
+  ret = nftw(startPath, customNftw, fd_limit, flags);
   printf("%d\n", count);
 }
