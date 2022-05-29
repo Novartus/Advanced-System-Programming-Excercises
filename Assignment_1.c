@@ -22,16 +22,17 @@ int customNftw(const char * fname,
   if (fileflags == FTW_SL) { // if it is a symbolic link
     char * fullpath = realpath(fname, NULL); // character pointer to the full path of the file from the symbolic link
     char * dname = dirname(fullpath); // character pointer to the directory name to check if real path matches any entry in the ancestry.
+    
     if (strlen(dname) == strlen(startpath)) {
       int flag = 0;
       for (int i = 0; i < strlen(dname); i++) {
         if (dname[i] != startpath[i]) {
           flag = 1;
           printf("%s\n", fname); // match is found, print the whole pathname of link
+          count++;
           break;
         }
       }
-      count++;
     }
   }
   return 0;
@@ -41,16 +42,16 @@ int main(int argc, char * argv[]) {
   globalargv = argv;
   char * currentWorkingDir = getcwd(NULL, 0);
   for (int i = 0; i < argc; i++) {
-    if (strcmp(argv[i], "-t") == 0) {
+    if (argc == 2) {
       target = i;
     }
   }
+
   if (target <= -1) {
     target = argc;
     startpath = currentWorkingDir;
   } else {
-    startpath = argv[target + 1];
-
+    startpath = argv[target];
   }
   int fd_limit = 99;
   int flags = FTW_PHYS; // FTW_PHYS to perform a physical walk 
