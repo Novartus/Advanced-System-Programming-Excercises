@@ -26,7 +26,7 @@ renameCounter=1
 
 
 for line in $lines; do
-    if [[ $line == *"${hashValues[0]}"* ]]; then
+    if [[ $line == *"${hashValues[0]}" ]]; then
         # echo "Found: $line"
         COUNTER=$[$COUNTER +1]
         if [[ $COUNTER -ge 1 ]]; then
