@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
 
-filename='/mnt/c/Users/hudan/Desktop/ASP_2/md5List.txt'
 owner="$(whoami)"
 md5dir="MD5_SUM"
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )";
-# SCRIPT_PATH="dirname ${BASH_SOURCE[0]:-$0}";
-fileStoreDir="$SCRIPT_DIR/$md5dir"
-# fileStoreDir="$(pwd)/$md5dir"
-# echo "Who Am I ?: $owner"
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )"; # Get script directory
+fileStoreDir="$SCRIPT_DIR/$md5dir" # Create directory to store duplicate files
+filename="$SCRIPT_DIR/md5List.txt"
 hashValues=("$@")
-# echo "Hashed Val: ${hashValues[0]}"
 
 if [[ ! -e $filename ]]; then
 # File doesn't exist
@@ -18,7 +14,7 @@ if [[ ! -e $filename ]]; then
 fi
 
 if [[ ! -d $fileStoreDir ]]; then
-# create dir
+# create dir if it doesn't exist
     mkdir $fileStoreDir
 fi
 
@@ -40,13 +36,8 @@ for line in $lines; do
             duplicateFileNamesArray+=("$(echo $line | cut -d ":" -f 1)") # format of line: OriginalPath/Filename -> Filename
             fullFilePath="$(echo $line | cut -d ":" -f 1)" # file name
             fileName="${fullFilePath##*/}"  # extract file name by last value of /
-            # echo "File Name: ${fileName##*/}"
             if [[ $fileName == "$originalName" ]]; then
                 duplicateName=true # duplicate name found
-                if [[ ! -d "${md5dir}" ]]; then # check if dir exists or not
-                    # echo "The dir doesn't exist: ${md5dir}"
-                    mkdir -p "${md5dir}"
-                fi
             else
                 originalName=$fileName # set as original file name
             fi
@@ -54,24 +45,32 @@ for line in $lines; do
     fi
 done
 finalDuplicateFileCount=$[$COUNTER -1]
-# echo "Duplicate files count: $finalDuplicateFileCount"
 
-
-# echo "Original file name: $originalName"
-if $duplicateName
-then 
-    for file in ${duplicateFileNamesArray[@]}; do
-    filepath=${file%.*}
-    fileName=${filepath##*/}
-    extension=${file##*.}
-    newFileName="$fileStoreDir/$fileName$renameCounter.$extension"
-    mv -i -- "$file" "$newFileName"
-    renameCounter=$[$renameCounter +1]
-    done
-    # echo "Duplicate file name found"
+if [[ $finalDuplicateFileCount -gt 0 ]]; then
+    # Logic for renaming duplicate files
+    if $duplicateName
+    then 
+        for file in ${duplicateFileNamesArray[@]}; do
+        filepath=${file%.*}
+        fileName=${filepath##*/}
+        extension=${file##*.}
+        newFileName="$fileStoreDir/$fileName$renameCounter.$extension"
+        mv -i -- "$file" "$newFileName"
+        renameCounter=$[$renameCounter +1]
+        done
+    else
+        # Logic for moving duplicate files to fileStoreDir
+        for file in ${duplicateFileNamesArray[@]}; do
+            filepath=${file%.*}
+            fileName=${filepath##*/}
+            extension=${file##*.}
+            newFileName="$fileStoreDir/$fileName.$extension"
+            mv -i -- "$file" "$newFileName"
+        done
+    fi
 fi
 
-
+echo ""
 for i in "${duplicateDataArray[@]}"; do
     md5ContentArray+=("$(echo $i | cut -d ":" -f 1)->$(echo $i | cut -d ":" -f 3)")
 done
@@ -84,11 +83,10 @@ if [ $finalDuplicateFileCount -gt 0 ]; then
     fileName=${filepath##*/}
     extension=${file##*.}
     # echo "Duplicate files found"
-    echo "[MD5 sum of the content]"
+    # echo "[MD5 sum of the content]"
     ( IFS=$'\n'; echo "${md5ContentArray[*]}" )
     # echo "Duplicate files: ${md5ContentArray[@]}"
     echo "Number of identical files to $fileName.$extension: $finalDuplicateFileCount"
 else
     echo "Number of identical files to $originalName: 0"
 fi
-
