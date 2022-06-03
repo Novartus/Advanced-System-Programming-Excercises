@@ -3,7 +3,10 @@
 filename='/mnt/c/Users/hudan/Desktop/ASP_2/md5List.txt'
 owner="$(whoami)"
 md5dir="MD5_SUM"
-fileStoreDir="$(pwd)/$md5dir"
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )";
+# SCRIPT_PATH="dirname ${BASH_SOURCE[0]:-$0}";
+fileStoreDir="$SCRIPT_DIR/$md5dir"
+# fileStoreDir="$(pwd)/$md5dir"
 # echo "Who Am I ?: $owner"
 hashValues=("$@")
 # echo "Hashed Val: ${hashValues[0]}"
@@ -12,6 +15,11 @@ if [[ ! -e $filename ]]; then
 # File doesn't exist
     echo "File doesn't exist: $filename"
     exit 1
+fi
+
+if [[ ! -d $fileStoreDir ]]; then
+# create dir
+    mkdir $fileStoreDir
 fi
 
 lines=`cat $filename`
@@ -24,10 +32,8 @@ duplicateName=false
 renameCounter=1
 
 
-
 for line in $lines; do
     if [[ $line == *"${hashValues[0]}" ]]; then
-        # echo "Found: $line"
         COUNTER=$[$COUNTER +1]
         if [[ $COUNTER -ge 1 ]]; then
             # duplicateDataArray+=("$line")
@@ -47,10 +53,11 @@ for line in $lines; do
         fi
     fi
 done
-echo "Duplicate files count: $COUNTER"
+finalDuplicateFileCount=$[$COUNTER -1]
+# echo "Duplicate files count: $finalDuplicateFileCount"
 
 
-
+# echo "Original file name: $originalName"
 if $duplicateName
 then 
     for file in ${duplicateFileNamesArray[@]}; do
@@ -71,5 +78,17 @@ fi
 
 
 # echo "duplicateFileNamesArray: ${duplicateFileNamesArray[@]}"
-echo "[MD5 sum of the content]"
-( IFS=$'\n'; echo "${md5ContentArray[*]}" )
+if [ $finalDuplicateFileCount -gt 0 ]; then
+    file=${duplicateFileNamesArray[0]}
+    filepath=${file%.*}
+    fileName=${filepath##*/}
+    extension=${file##*.}
+    echo "Duplicate files found"
+    echo "[MD5 sum of the content]"
+    ( IFS=$'\n'; echo "${md5ContentArray[*]}" )
+    # echo "Duplicate files: ${md5ContentArray[@]}"
+    echo "Number of identical files to $fileName.$extension: $finalDuplicateFileCount"
+else
+    echo "Number of identical files to $originalName: 0"
+fi
+
