@@ -36,7 +36,7 @@ for line in $lines; do
     if [[ $line == *"${hashValues[0]}" ]]; then
         COUNTER=$[$COUNTER +1]
         if [[ $COUNTER -ge 1 ]]; then
-            # duplicateDataArray+=("$line")
+            duplicateDataArray+=("$line")
             duplicateFileNamesArray+=("$(echo $line | cut -d ":" -f 1)") # format of line: OriginalPath/Filename -> Filename
             fullFilePath="$(echo $line | cut -d ":" -f 1)" # file name
             fileName="${fullFilePath##*/}"  # extract file name by last value of /
@@ -72,9 +72,9 @@ then
 fi
 
 
-# for i in "${duplicateDataArray[@]}"; do
-#     md5ContentArray+=("$(echo $i | cut -d ":" -f 1)->$(echo $i | cut -d ":" -f 3)")
-# done
+for i in "${duplicateDataArray[@]}"; do
+    md5ContentArray+=("$(echo $i | cut -d ":" -f 1)->$(echo $i | cut -d ":" -f 3)")
+done
 
 
 # echo "duplicateFileNamesArray: ${duplicateFileNamesArray[@]}"
@@ -83,7 +83,7 @@ if [ $finalDuplicateFileCount -gt 0 ]; then
     filepath=${file%.*}
     fileName=${filepath##*/}
     extension=${file##*.}
-    echo "Duplicate files found"
+    # echo "Duplicate files found"
     echo "[MD5 sum of the content]"
     ( IFS=$'\n'; echo "${md5ContentArray[*]}" )
     # echo "Duplicate files: ${md5ContentArray[@]}"
